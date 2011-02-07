@@ -6,7 +6,8 @@
   "permissions": [
     "http://localhost:8000/",
     "http://localhost:*/",
-    "http://localhost/"
+    "http://localhost/",
+    "contextMenus"
   ],
   "content_scripts": [
     {

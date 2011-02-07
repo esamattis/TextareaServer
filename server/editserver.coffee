@@ -2,7 +2,7 @@
 
 
 http = require "http"
-spawn = require('child_process').spawn
+exec = require('child_process').exec
 io = require "socket.io"
 temp = require "temp"
 fs = require "fs"
@@ -38,7 +38,7 @@ socket.on 'connection', (client) ->
         fs.open file, "w", (err, fd) ->
             fs.write fd, obj.textarea, obj.textarea.lenght, 0, ->
                 fs.close fd, ->
-                    inotify.addWatch {
+                    inotify.addWatch 
                         path: DIR
                         watch_for: Inotify.IN_CLOSE_WRITE
                         callback: (event) ->
@@ -47,8 +47,7 @@ socket.on 'connection', (client) ->
                             fs.readFile file, (err, data) ->
                                 obj.textarea = data.toString()
                                 client.send JSON.stringify obj
-                    }
-                    editor = spawn "gvim", [  file ]
+                    editor = exec obj.executable + " " + file
             
 
 

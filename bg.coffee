@@ -1,17 +1,20 @@
 
 
-
-
 socket = new io.Socket "localhost", port: 8000
+
+
+chrome.contextMenus.create
+    "title": "Edit in external editor!"
+    "type": "normal"
+    "contexts": ["all"]
+    "onclick": (data, tab) ->
+        debugger
+
 
 socket.connect()
 
 ports = {}
 
-
-#socket.on "disconnect", ->
-    #setTimout (-> socket.connect()), 1000
-    
 
 socket.on "message", (msg) ->
     obj = JSON.parse msg
@@ -25,7 +28,10 @@ chrome.extension.onConnect.addListener (port) ->
 
     port.onMessage.addListener (msg)  ->
         
+        debugger
+        
         ports[msg.uuid] = port
+        msg.executable = "gvim"
         
         socket.send JSON.stringify msg
 

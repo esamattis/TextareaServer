@@ -26,15 +26,15 @@
     var textarea;
     console.log("getting from bg: " + obj.textarea);
     textarea = textAreas[obj.uuid];
-    return textarea.text(obj.textarea);
+    return textarea.val(obj.textarea);
   });
   $(function() {
-    return $("textarea").click(function() {
+    return $("textarea").dblclick(function() {
       var textarea;
       textarea = $(this);
       textAreas[textarea.uuid()] = textarea;
       return port.postMessage({
-        textarea: textarea.text(),
+        textarea: textarea.val(),
         uuid: textarea.uuid()
       });
     });

@@ -27,20 +27,16 @@ port = chrome.extension.connect  name: "textareapipe"
 port.onMessage.addListener (obj) ->
     console.log "getting from bg: "  + obj.textarea
     textarea = textAreas[obj.uuid]
-    textarea.text obj.textarea
-
-    
-
-
+    textarea.val obj.textarea
 
 
 
 $ ->
-    $("textarea").click ->
+    $("textarea").dblclick ->
         textarea = $(this)
         textAreas[textarea.uuid()] = textarea
 
-        port.postMessage  textarea: textarea.text(), uuid: textarea.uuid()
+        port.postMessage  textarea: textarea.val(), uuid: textarea.uuid()
     
         
     

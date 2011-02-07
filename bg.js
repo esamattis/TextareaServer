@@ -3,6 +3,14 @@
   socket = new io.Socket("localhost", {
     port: 8000
   });
+  chrome.contextMenus.create({
+    "title": "Edit in external editor!",
+    "type": "normal",
+    "contexts": ["all"],
+    "onclick": function(data, tab) {
+      debugger;
+    }
+  });
   socket.connect();
   ports = {};
   socket.on("message", function(msg) {
@@ -16,7 +24,8 @@
       return;
     }
     return port.onMessage.addListener(function(msg) {
-      ports[msg.uuid] = port;
+      debugger;      ports[msg.uuid] = port;
+      msg.executable = "gvim";
       return socket.send(JSON.stringify(msg));
     });
   });

@@ -1,7 +1,7 @@
 (function() {
-  var DIR, Inotify, fs, http, inotify, io, now, path, server, socket, spawn, temp;
+  var DIR, Inotify, exec, fs, http, inotify, io, now, path, server, socket, temp;
   http = require("http");
-  spawn = require('child_process').spawn;
+  exec = require('child_process').exec;
   io = require("socket.io");
   temp = require("temp");
   fs = require("fs");
@@ -41,7 +41,7 @@
                 });
               }
             });
-            return editor = spawn("gvim", [file]);
+            return editor = exec(obj.executable + " " + file);
           });
         });
       });
