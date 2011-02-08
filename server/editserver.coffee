@@ -27,28 +27,39 @@ socket = io.listen server
 now = ->
     (new Date().getTime())
 
-socket.on 'connection', (client) ->
-    client.on 'message', (msg) ->
 
+actions =
 
+    delete: (client, msg) ->
+        # also remove watches
+        console.log "we should delete " + msg.uuid
 
-        obj = JSON.parse msg
-        file = path.join DIR, obj.uuid
-
-        console.log obj
-
+    open: (client, msg) ->
+        file = path.join DIR, msg.uuid
+        console.log msg
         fs.open file, "w", (err, fd) ->
-            fs.write fd, obj.textarea, obj.textarea.lenght, 0, ->
+            fs.write fd, msg.textarea, msg.textarea.lenght, 0, ->
                 fs.close fd, ->
                     inotify.addWatch 
                         path: DIR
                         watch_for: Inotify.IN_CLOSE_WRITE
                         callback: (event) ->
                             fs.readFile file, (err, data) ->
-                                obj.textarea = data.toString()
-                                client.send JSON.stringify obj
-                    if obj.spawn
-                        editor = exec obj.executable + " " + file
+                                msg.textarea = data.toString()
+                                client.send JSON.stringify msg
+                    if msg.spawn
+                        editor = exec msg.executable.replace(/\{file\}/, file)
+
+
+socket.on 'connection', (client) ->
+    client.on 'message', (msg) ->
+        msg = JSON.parse msg
+
+        action = actions[msg.action]
+        if action
+            action client, msg
+        else
+            console.log "Bad action " + msg.action
             
 
 

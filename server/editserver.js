@@ -1,5 +1,5 @@
 (function() {
-  var DIR, Inotify, exec, fs, http, inotify, io, now, path, server, socket, temp;
+  var DIR, Inotify, actions, exec, fs, http, inotify, io, now, path, server, socket, temp;
   http = require("http");
   exec = require('child_process').exec;
   io = require("socket.io");
@@ -20,14 +20,16 @@
   now = function() {
     return new Date().getTime();
   };
-  socket.on('connection', function(client) {
-    client.on('message', function(msg) {
-      var file, obj;
-      obj = JSON.parse(msg);
-      file = path.join(DIR, obj.uuid);
-      console.log(obj);
+  actions = {
+    "delete": function(client, msg) {
+      return console.log("we should delete " + msg.uuid);
+    },
+    open: function(client, msg) {
+      var file;
+      file = path.join(DIR, msg.uuid);
+      console.log(msg);
       return fs.open(file, "w", function(err, fd) {
-        return fs.write(fd, obj.textarea, obj.textarea.lenght, 0, function() {
+        return fs.write(fd, msg.textarea, msg.textarea.lenght, 0, function() {
           return fs.close(fd, function() {
             var editor;
             inotify.addWatch({
@@ -35,17 +37,29 @@
               watch_for: Inotify.IN_CLOSE_WRITE,
               callback: function(event) {
                 return fs.readFile(file, function(err, data) {
-                  obj.textarea = data.toString();
-                  return client.send(JSON.stringify(obj));
+                  msg.textarea = data.toString();
+                  return client.send(JSON.stringify(msg));
                 });
               }
             });
-            if (obj.spawn) {
-              return editor = exec(obj.executable + " " + file);
+            if (msg.spawn) {
+              return editor = exec(msg.executable.replace(/\{file\}/, file));
             }
           });
         });
       });
+    }
+  };
+  socket.on('connection', function(client) {
+    client.on('message', function(msg) {
+      var action;
+      msg = JSON.parse(msg);
+      action = actions[msg.action];
+      if (action) {
+        return action(client, msg);
+      } else {
+        return console.log("Bad action " + msg.action);
+      }
     });
     return client.on('disconnect', function() {
       return console.log("browser disconnected");

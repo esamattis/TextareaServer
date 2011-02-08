@@ -3,7 +3,7 @@
 SETTINGS =
     hostname: "localhost"
     port: 8000
-    editor_cmd: "gedit"
+    editor_cmd: "gedit {file}"
 
 
 

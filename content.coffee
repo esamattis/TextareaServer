@@ -45,7 +45,7 @@ do ->
 
         setPosition = ->
             offset = that.offset()
-            l = offset.left + that.width() - e.width() - 5
+            l = offset.left + that.width() - e.width() - 20 
             t = offset.top
             e.css
                 left: "#{l}px !important"
@@ -75,6 +75,15 @@ do ->
             button.click ->
                 button.addClass "edit-active"
 
+            timer = null
+            that.hover (->
+                clearTimeout timer
+                button.show()),
+                ->
+                    clearTimeout timer
+                    timer = setTimeout (->
+                        button.hide()), 500
+
             that.toUpperRightCorner button
             callback that, button
 
@@ -102,12 +111,13 @@ port = chrome.extension.connect  name: "textareapipe"
 port.onMessage.addListener (obj) ->
     textarea = textAreas[obj.uuid]
     textarea.val obj.textarea
+    textarea.trigger("keydown").trigger("keyup")
 
 
 
 $ ->
-    textarea = $("textarea")
-    textarea.addButton (textarea, button) ->
+    
+    $("textarea").addButton (textarea, button) ->
         button.click ->
             textAreas[textarea.uuid()] = textarea
 
@@ -116,11 +126,20 @@ $ ->
                     textarea: textarea.val()
                     uuid: textarea.uuid()
                     spawn: spawn
+                    action: "open"
 
             sendToEditor(true)
 
             $("textarea").edited ->
                 sendToEditor()
+
+
+    $(window).unload ->
+
+        for key, ta of textAreas
+            port.postMessage
+                action: "delete"
+                uuid: ta.uuid()
 
 
 

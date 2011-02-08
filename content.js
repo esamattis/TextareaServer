@@ -54,7 +54,7 @@
       setPosition = function() {
         var l, offset, t;
         offset = that.offset();
-        l = offset.left + that.width() - e.width() - 5;
+        l = offset.left + that.width() - e.width() - 20;
         t = offset.top;
         return e.css({
           left: "" + l + "px !important",
@@ -71,7 +71,7 @@
     };
     $.fn.addButton = function(callback) {
       return this.each(function() {
-        var button, that;
+        var button, that, timer;
         that = $(this);
         button = $("<span>", {
           "class": "edit-in-textareaserver"
@@ -79,6 +79,16 @@
         button.text("edit");
         button.click(function() {
           return button.addClass("edit-active");
+        });
+        timer = null;
+        that.hover((function() {
+          clearTimeout(timer);
+          return button.show();
+        }), function() {
+          clearTimeout(timer);
+          return timer = setTimeout((function() {
+            return button.hide();
+          }), 500);
         });
         that.toUpperRightCorner(button);
         return callback(that, button);
@@ -106,12 +116,11 @@
   port.onMessage.addListener(function(obj) {
     var textarea;
     textarea = textAreas[obj.uuid];
-    return textarea.val(obj.textarea);
+    textarea.val(obj.textarea);
+    return textarea.trigger("keydown").trigger("keyup");
   });
   $(function() {
-    var textarea;
-    textarea = $("textarea");
-    return textarea.addButton(function(textarea, button) {
+    $("textarea").addButton(function(textarea, button) {
       return button.click(function() {
         var sendToEditor;
         textAreas[textarea.uuid()] = textarea;
@@ -122,7 +131,8 @@
           return port.postMessage({
             textarea: textarea.val(),
             uuid: textarea.uuid(),
-            spawn: spawn
+            spawn: spawn,
+            action: "open"
           });
         };
         sendToEditor(true);
@@ -130,6 +140,18 @@
           return sendToEditor();
         });
       });
+    });
+    return $(window).unload(function() {
+      var key, ta, _results;
+      _results = [];
+      for (key in textAreas) {
+        ta = textAreas[key];
+        _results.push(port.postMessage({
+          action: "delete",
+          uuid: ta.uuid()
+        }));
+      }
+      return _results;
     });
   });
 }).call(this);
