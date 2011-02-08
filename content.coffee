@@ -25,8 +25,6 @@ do ->
     $.fn.sizeId = ->
         return this.height() + "" + this.width()
 
-    $.fn.sizeId = ->
-        return this.height() + "" + this.width()
 
     $.fn.textAreaResized = (callback) ->
         this.each ->
@@ -62,8 +60,6 @@ do ->
 
 
 
-
-
     $.fn.addButton = (callback) ->
 
         this.each ->
@@ -76,13 +72,14 @@ do ->
                 button.addClass "edit-active"
 
             timer = null
-            that.hover (->
+            that.hover ->
                 clearTimeout timer
-                button.show()),
-                ->
-                    clearTimeout timer
-                    timer = setTimeout (->
-                        button.hide()), 500
+                button.show()
+            , ->
+                clearTimeout timer
+                timer = setTimeout ->
+                    button.hide()
+                , 500
 
             that.toUpperRightCorner button
             callback that, button
@@ -136,10 +133,9 @@ $ ->
 
     $(window).unload ->
 
-        for key, ta of textAreas
-            port.postMessage
-                action: "delete"
-                uuid: ta.uuid()
+        port.postMessage
+            action: "delete_all"
+            uuid: [ta.uudi() for key, ta of ta.uuid()]
 
 
 

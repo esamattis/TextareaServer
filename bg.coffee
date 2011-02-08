@@ -25,6 +25,17 @@ loadSocketIO = ->
         console.log "we aleready have io"
 
 
+
+
+showTempNotification = (msg) ->
+
+    notification = webkitNotifications.createNotification "icon.png", 'Hello!', msg
+
+    notification.show()
+    setTimeout ->
+        notification.cancel()
+    , 5000
+
 createSocket = ->
 
     if createSocket.ran
@@ -33,10 +44,14 @@ createSocket = ->
     socket = new io.Socket SETTINGS.hostname, port: SETTINGS.port
     initBridge()
 
-    socket.on "disconnect", reConnect
     socket.on "connect", ->
         console.log "stopping connection poller"
         clearTimeout reConnect.timer
+        showTempNotification "Connected to TextAreaServer at #{ SETTINGS.hostname }:#{ SETTINGS.port }"
+
+    socket.on "disconnect", ->
+        showTempNotification "Disconnected from TextAreaServer at #{ SETTINGS.hostname }:#{ SETTINGS.port }"
+        reConnect()
 
     socket.connect()
 

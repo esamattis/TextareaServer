@@ -1,5 +1,5 @@
 (function() {
-  var SETTINGS, createSocket, initBridge, loadSocketIO, ports, reConnect, socket;
+  var SETTINGS, createSocket, initBridge, loadSocketIO, ports, reConnect, showTempNotification, socket;
   SETTINGS = {
     hostname: "localhost",
     port: 8000,
@@ -20,6 +20,14 @@
       return console.log("we aleready have io");
     }
   };
+  showTempNotification = function(msg) {
+    var notification;
+    notification = webkitNotifications.createNotification("icon.png", 'Hello!', msg);
+    notification.show();
+    return setTimeout(function() {
+      return notification.cancel();
+    }, 5000);
+  };
   createSocket = function() {
     if (createSocket.ran) {
       return;
@@ -28,10 +36,14 @@
       port: SETTINGS.port
     });
     initBridge();
-    socket.on("disconnect", reConnect);
     socket.on("connect", function() {
       console.log("stopping connection poller");
-      return clearTimeout(reConnect.timer);
+      clearTimeout(reConnect.timer);
+      return showTempNotification("Connected to TextAreaServer at " + SETTINGS.hostname + ":" + SETTINGS.port);
+    });
+    socket.on("disconnect", function() {
+      showTempNotification("Disconnected from TextAreaServer at " + SETTINGS.hostname + ":" + SETTINGS.port);
+      return reConnect();
     });
     socket.connect();
     return createSocket.ran = true;

@@ -28,9 +28,6 @@
     $.fn.sizeId = function() {
       return this.height() + "" + this.width();
     };
-    $.fn.sizeId = function() {
-      return this.height() + "" + this.width();
-    };
     $.fn.textAreaResized = function(callback) {
       return this.each(function() {
         var last, that;
@@ -81,14 +78,14 @@
           return button.addClass("edit-active");
         });
         timer = null;
-        that.hover((function() {
+        that.hover(function() {
           clearTimeout(timer);
           return button.show();
-        }), function() {
+        }, function() {
           clearTimeout(timer);
-          return timer = setTimeout((function() {
+          return timer = setTimeout(function() {
             return button.hide();
-          }), 500);
+          }, 500);
         });
         that.toUpperRightCorner(button);
         return callback(that, button);
@@ -142,16 +139,22 @@
       });
     });
     return $(window).unload(function() {
-      var key, ta, _results;
-      _results = [];
-      for (key in textAreas) {
-        ta = textAreas[key];
-        _results.push(port.postMessage({
-          action: "delete",
-          uuid: ta.uuid()
-        }));
-      }
-      return _results;
+      var key, ta;
+      return port.postMessage({
+        action: "delete_all",
+        uuid: [
+          (function() {
+            var _ref, _results;
+            _ref = ta.uuid();
+            _results = [];
+            for (key in _ref) {
+              ta = _ref[key];
+              _results.push(ta.uudi());
+            }
+            return _results;
+          })()
+        ]
+      });
     });
   });
 }).call(this);
