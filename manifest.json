@@ -1,8 +1,17 @@
 {
-  "name": "My First Extension",
+  "name": "TextAreaServer",
   "version": "1.0",
-  "description": "The first extension that I made.",
+  "description": "It's All Text! -clone for Chrome",
   "background_page" : "background.html",
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+    "icons": {
+          "128": "icon.png" 
+  },
+  "permissions": [
+        "notifications"
+  ],
   "content_scripts": [
     {
         "matches": ["http://*/*"],
