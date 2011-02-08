@@ -1,0 +1,20 @@
+
+
+.edit-in-textareaserver {
+    cursor: pointer !important;
+    position: absolute !important;
+    padding: 2px !important;
+    margin: 0px !important;
+    border: medium none !important;
+    height: 14px !important;
+    -webkit-border-bottom-left-radius: 2px !important;
+    -webkit-border-bottom-right-radius: 2px !important;
+    background-color: #444 !important;
+    color: white !important;
+    font-size: 12px !important;
+    opacity: 0.5 !important;
+}
+
+.edit-active {
+    background-color: green !important;
+}

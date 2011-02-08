@@ -35,6 +35,8 @@ socket.on 'connection', (client) ->
         obj = JSON.parse msg
         file = path.join DIR, obj.uuid
 
+        console.log obj
+
         fs.open file, "w", (err, fd) ->
             fs.write fd, obj.textarea, obj.textarea.lenght, 0, ->
                 fs.close fd, ->
@@ -42,12 +44,11 @@ socket.on 'connection', (client) ->
                         path: DIR
                         watch_for: Inotify.IN_CLOSE_WRITE
                         callback: (event) ->
-                            console.log event
-                            console.log "event" + now()
                             fs.readFile file, (err, data) ->
                                 obj.textarea = data.toString()
                                 client.send JSON.stringify obj
-                    editor = exec obj.executable + " " + file
+                    if obj.spawn
+                        editor = exec obj.executable + " " + file
             
 
 

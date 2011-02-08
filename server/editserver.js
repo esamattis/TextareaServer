@@ -25,6 +25,7 @@
       var file, obj;
       obj = JSON.parse(msg);
       file = path.join(DIR, obj.uuid);
+      console.log(obj);
       return fs.open(file, "w", function(err, fd) {
         return fs.write(fd, obj.textarea, obj.textarea.lenght, 0, function() {
           return fs.close(fd, function() {
@@ -33,15 +34,15 @@
               path: DIR,
               watch_for: Inotify.IN_CLOSE_WRITE,
               callback: function(event) {
-                console.log(event);
-                console.log("event" + now());
                 return fs.readFile(file, function(err, data) {
                   obj.textarea = data.toString();
                   return client.send(JSON.stringify(obj));
                 });
               }
             });
-            return editor = exec(obj.executable + " " + file);
+            if (obj.spawn) {
+              return editor = exec(obj.executable + " " + file);
+            }
           });
         });
       });

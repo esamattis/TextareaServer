@@ -3,16 +3,11 @@
   "version": "1.0",
   "description": "The first extension that I made.",
   "background_page" : "background.html",
-  "permissions": [
-    "http://localhost:8000/",
-    "http://localhost:*/",
-    "http://localhost/",
-    "contextMenus"
-  ],
   "content_scripts": [
     {
-        "matches": ["http://localhost/*"],
-        "js": ["jquery.js", "content.js"]
+        "matches": ["http://*/*"],
+        "js": ["jquery.js", "content.js"],
+        "css": [ "style.css" ]
     }
 
   ]
