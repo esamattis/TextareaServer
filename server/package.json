@@ -1,0 +1,18 @@
+
+{
+    "name" : "textareaserver"
+    , "version": "0.1"
+    , "author": "Esa-Matti Suuronen"
+    , "bin": {
+        "textareaserver": "editserver.js"
+    }
+    , "dependencies": {
+        "socket.io": ""    
+        , "inotify": ""
+        , "cli": ""
+        , "daemon": ""
+// http://slashed.posterous.com/writing-daemons-in-javascript-with-nodejs-0
+    }   
+
+}
+
