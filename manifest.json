@@ -10,13 +10,15 @@
           "128": "icon.png" 
   },
   "permissions": [
-        "notifications"
+        "notifications",
+        "contextMenus"
   ],
   "content_scripts": [
     {
         "matches": ["http://*/*"],
         "js": ["jquery.js", "content.js"],
-        "css": [ "style.css" ]
+        "css": [ "style.css" ],
+        "all_frames": true
     }
 
   ]

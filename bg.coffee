@@ -42,15 +42,20 @@ createSocket = ->
         return
 
     socket = new io.Socket SETTINGS.hostname, port: SETTINGS.port
-    initBridge()
+
+    socket.on "message", (msg) ->
+        obj = JSON.parse msg
+        port = ports[obj.uuid]
+        port.postMessage obj
+
 
     socket.on "connect", ->
         console.log "stopping connection poller"
         clearTimeout reConnect.timer
-        showTempNotification "Connected to TextAreaServer at #{ SETTINGS.hostname }:#{ SETTINGS.port }"
+        showTempNotification "Connected to TextAreaServer at #{ socket.transport.socket.URL }"
 
     socket.on "disconnect", ->
-        showTempNotification "Disconnected from TextAreaServer at #{ SETTINGS.hostname }:#{ SETTINGS.port }"
+        showTempNotification "Disconnected from TextAreaServer at #{ socket.transport.socket.URL }"
         reConnect()
 
     socket.connect()
@@ -72,29 +77,33 @@ reConnect = ->
 
 
 
-initBridge = ->
-
-    socket.on "message", (msg) ->
-        obj = JSON.parse msg
-        console.log "getting from editor"
-        console.log obj
-        port = ports[obj.uuid]
-        port.postMessage obj
+selectorPort = null
 
 
-    chrome.extension.onConnect.addListener (port) ->
-        if port.name isnt "textareapipe"
-            return
+chrome.contextMenus.create
+    title: "Edit in external editor"
+    contexts: ["all"]
+    onclick: ( onClickData, tab ) ->
+        chrome.tabs.sendRequest tab.id, action: "edittextarea", onClickData: onClickData
 
+
+chrome.extension.onConnect.addListener (port) ->
+    portListeners[port.name]?(port)
+
+
+portListeners =
+
+    textareapipe: (port) ->
 
         port.onMessage.addListener (msg)  ->
-
-
             ports[msg.uuid] = port
             msg.executable = SETTINGS.editor_cmd
             msg.type = msg.type or "txt"
 
             socket.send JSON.stringify msg
+
+
+
 
 
 loadSocketIO()

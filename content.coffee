@@ -2,6 +2,7 @@
 
 
 do ->
+
     timeStamp = (new Date().getTime())
     siteId = ->
         location.href.replace(/[^a-zA-Z]/g, "") + "_" + timeStamp
@@ -22,70 +23,6 @@ do ->
                 callback(e) if active
 
 
-    $.fn.sizeId = ->
-        return this.height() + "" + this.width()
-
-
-    $.fn.textAreaResized = (callback) ->
-        this.each ->
-            that = $ this
-            last = that.sizeId()
-            that.mousedown ->
-                last = that.sizeId()
-            that.mousemove ->
-                callback(that.get(0)) if last isnt that.sizeId()
-
-
-    $.fn.toUpperRightCorner = (e) ->
-        e = $ e
-        that = this
-        that.after e
-
-        setPosition = ->
-            offset = that.offset()
-            l = offset.left + that.width() - e.width() - 20 
-            t = offset.top
-            e.css
-                left: "#{l}px !important"
-                top: "#{t}px !important"
-
-
-        setPosition()
-        $(window).resize ->
-            setPosition()
-        that.textAreaResized ->
-            setPosition()
-            
-
-
-
-
-    $.fn.addButton = (callback) ->
-
-        this.each ->
-            that = $(this)
-
-            button = $ "<span>", class: "edit-in-textareaserver"
-            button.text "edit"
-
-            button.click ->
-                button.addClass "edit-active"
-
-            timer = null
-            that.hover ->
-                clearTimeout timer
-                button.show()
-            , ->
-                clearTimeout timer
-                timer = setTimeout ->
-                    button.hide()
-                , 500
-
-            that.toUpperRightCorner button
-            callback that, button
-
-
-
 
     $.fn.uuid = ->
         e =  $(this.get(0))
@@ -100,42 +37,59 @@ do ->
     $.fn.uuid.counter = 0
 
 
+    $.fn.editInExternalEditor = (port) ->
+        that = $(this)
+
+        if that.data "server"
+            return
+        that.data "server", true
+
+        sendToEditor = (spawn=false) ->
+            port.postMessage
+                textarea: that.val()
+                uuid: that.uuid()
+                spawn: spawn
+                action: "open"
+
+        that.edited ->
+            sendToEditor()
+
+        sendToEditor(true)
+
+
+
+
 textAreas = {}
 
+
 port = chrome.extension.connect  name: "textareapipe"
-
-
 port.onMessage.addListener (obj) ->
     textarea = textAreas[obj.uuid]
     textarea.val obj.textarea
-    textarea.trigger("keydown").trigger("keyup")
 
 
+# Listen contextmenu clicks
+chrome.extension.onRequest.addListener (req, sender) ->
+    if req.action is "edittextarea"
 
-$ ->
-    
-    $("textarea").addButton (textarea, button) ->
-        button.click ->
-            textAreas[textarea.uuid()] = textarea
+        console.log "frame #{ req.onClickData.frameUrl } page #{ req.onClickData.pageUrl} #{ window.location.href  } "
 
-            sendToEditor = (spawn=false) ->
-                port.postMessage
-                    textarea: textarea.val()
-                    uuid: textarea.uuid()
-                    spawn: spawn
-                    action: "open"
-
-            sendToEditor(true)
-
-            $("textarea").edited ->
-                sendToEditor()
+        realUrl = req.onClickData.frameUrl || req.onClickData.pageUrl
+        if realUrl isnt window.location.href
+            return
+        
+        textarea = $(document.activeElement)
+        textAreas[textarea.uuid()] = textarea
+        textarea.editInExternalEditor(port)
 
 
-    $(window).unload ->
+$(window).unload ->
 
-        port.postMessage
-            action: "delete_all"
-            uuid: [ta.uudi() for key, ta of ta.uuid()]
+    port.postMessage
+        action: "delete_all"
+        uuid: [ta.uudi() for key, ta of ta.uuid()]
+
+
 
 
 

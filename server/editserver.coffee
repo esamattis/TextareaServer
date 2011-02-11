@@ -25,25 +25,43 @@ server = http.createServer (req, res) ->
 socket = io.listen server
 
 
+
+clients = {}
+
+
+inotify.addWatch
+    path: DIR
+    watch_for: Inotify.IN_CLOSE_WRITE
+    callback: (event) ->
+        console.log event
+        fs.readFile (path.join DIR, event.name), (err, data) ->
+
+            msg =
+                textarea: data.toString()
+                uuid: event.name
+
+            client = clients[event.name]
+            client.send JSON.stringify msg
+
+
 actions =
 
     delete: (client, msg) ->
-        # also remove watches
+        # also remove from clients
         console.log "we should delete " + msg.uuid
 
     delete_all: (client, msg) ->
 
     open: (client, msg) ->
+
+        clients[msg.uuid] = client
+
         file = path.join DIR, msg.uuid
+
+        console.log "getting form browser:"
         console.log msg
+
         fs.writeFile file, msg.textarea, ->
-            inotify.addWatch
-                path: DIR
-                watch_for: Inotify.IN_CLOSE_WRITE
-                callback: (event) ->
-                    fs.readFile file, (err, data) ->
-                        msg.textarea = data.toString()
-                        client.send JSON.stringify msg
             if msg.spawn
                 editor = exec msg.executable.replace(/\{file\}/, file)
 
@@ -51,6 +69,7 @@ actions =
 socket.on 'connection', (client) ->
     client.on 'message', (msg) ->
         msg = JSON.parse msg
+
 
         action = actions[msg.action]
         if action
@@ -63,5 +82,5 @@ socket.on 'connection', (client) ->
 
 
 cli.main (args, options) ->
-    console.log "main"
     server.listen options.port, options.host
+

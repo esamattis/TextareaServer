@@ -25,72 +25,6 @@
         });
       });
     };
-    $.fn.sizeId = function() {
-      return this.height() + "" + this.width();
-    };
-    $.fn.textAreaResized = function(callback) {
-      return this.each(function() {
-        var last, that;
-        that = $(this);
-        last = that.sizeId();
-        that.mousedown(function() {
-          return last = that.sizeId();
-        });
-        return that.mousemove(function() {
-          if (last !== that.sizeId()) {
-            return callback(that.get(0));
-          }
-        });
-      });
-    };
-    $.fn.toUpperRightCorner = function(e) {
-      var setPosition, that;
-      e = $(e);
-      that = this;
-      that.after(e);
-      setPosition = function() {
-        var l, offset, t;
-        offset = that.offset();
-        l = offset.left + that.width() - e.width() - 20;
-        t = offset.top;
-        return e.css({
-          left: "" + l + "px !important",
-          top: "" + t + "px !important"
-        });
-      };
-      setPosition();
-      $(window).resize(function() {
-        return setPosition();
-      });
-      return that.textAreaResized(function() {
-        return setPosition();
-      });
-    };
-    $.fn.addButton = function(callback) {
-      return this.each(function() {
-        var button, that, timer;
-        that = $(this);
-        button = $("<span>", {
-          "class": "edit-in-textareaserver"
-        });
-        button.text("edit");
-        button.click(function() {
-          return button.addClass("edit-active");
-        });
-        timer = null;
-        that.hover(function() {
-          clearTimeout(timer);
-          return button.show();
-        }, function() {
-          clearTimeout(timer);
-          return timer = setTimeout(function() {
-            return button.hide();
-          }, 500);
-        });
-        that.toUpperRightCorner(button);
-        return callback(that, button);
-      });
-    };
     $.fn.uuid = function() {
       var e, uuid;
       e = $(this.get(0));
@@ -104,7 +38,30 @@
         return uuid;
       }
     };
-    return $.fn.uuid.counter = 0;
+    $.fn.uuid.counter = 0;
+    return $.fn.editInExternalEditor = function(port) {
+      var sendToEditor, that;
+      that = $(this);
+      if (that.data("server")) {
+        return;
+      }
+      that.data("server", true);
+      sendToEditor = function(spawn) {
+        if (spawn == null) {
+          spawn = false;
+        }
+        return port.postMessage({
+          textarea: that.val(),
+          uuid: that.uuid(),
+          spawn: spawn,
+          action: "open"
+        });
+      };
+      that.edited(function() {
+        return sendToEditor();
+      });
+      return sendToEditor(true);
+    };
   })();
   textAreas = {};
   port = chrome.extension.connect({
@@ -113,48 +70,37 @@
   port.onMessage.addListener(function(obj) {
     var textarea;
     textarea = textAreas[obj.uuid];
-    textarea.val(obj.textarea);
-    return textarea.trigger("keydown").trigger("keyup");
+    return textarea.val(obj.textarea);
   });
-  $(function() {
-    $("textarea").addButton(function(textarea, button) {
-      return button.click(function() {
-        var sendToEditor;
-        textAreas[textarea.uuid()] = textarea;
-        sendToEditor = function(spawn) {
-          if (spawn == null) {
-            spawn = false;
+  chrome.extension.onRequest.addListener(function(req, sender) {
+    var realUrl, textarea;
+    if (req.action === "edittextarea") {
+      console.log("frame " + req.onClickData.frameUrl + " page " + req.onClickData.pageUrl + " " + window.location.href + " ");
+      realUrl = req.onClickData.frameUrl || req.onClickData.pageUrl;
+      if (realUrl !== window.location.href) {
+        return;
+      }
+      textarea = $(document.activeElement);
+      textAreas[textarea.uuid()] = textarea;
+      return textarea.editInExternalEditor(port);
+    }
+  });
+  $(window).unload(function() {
+    var key, ta;
+    return port.postMessage({
+      action: "delete_all",
+      uuid: [
+        (function() {
+          var _ref, _results;
+          _ref = ta.uuid();
+          _results = [];
+          for (key in _ref) {
+            ta = _ref[key];
+            _results.push(ta.uudi());
           }
-          return port.postMessage({
-            textarea: textarea.val(),
-            uuid: textarea.uuid(),
-            spawn: spawn,
-            action: "open"
-          });
-        };
-        sendToEditor(true);
-        return $("textarea").edited(function() {
-          return sendToEditor();
-        });
-      });
-    });
-    return $(window).unload(function() {
-      var key, ta;
-      return port.postMessage({
-        action: "delete_all",
-        uuid: [
-          (function() {
-            var _ref, _results;
-            _ref = ta.uuid();
-            _results = [];
-            for (key in _ref) {
-              ta = _ref[key];
-              _results.push(ta.uudi());
-            }
-            return _results;
-          })()
-        ]
-      });
+          return _results;
+        })()
+      ]
     });
   });
 }).call(this);
