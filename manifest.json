@@ -1,5 +1,5 @@
 {
-  "name": "TextAreaServer",
+  "name": "TextAreaConnect",
   "version": "1.0",
   "description": "It's All Text! -clone for Chrome",
   "background_page" : "background.html",

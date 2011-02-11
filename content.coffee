@@ -19,8 +19,21 @@ do ->
             $e.focusout ->
                 active = false
 
-            $(window).keyup ->
-                callback(e) if active
+            last = $e.val()
+
+            do myloop = ->
+
+                current = $e.val()
+
+                if active and current isnt last
+                    callback $e
+                    console.log "calling " + $e
+
+                last = current
+
+                setTimeout myloop, 1000
+
+
 
 
 
@@ -52,6 +65,7 @@ do ->
                 action: "open"
 
         that.edited ->
+            console.log "edited " + this
             sendToEditor()
 
         sendToEditor(true)
@@ -77,7 +91,7 @@ chrome.extension.onRequest.addListener (req, sender) ->
         realUrl = req.onClickData.frameUrl || req.onClickData.pageUrl
         if realUrl isnt window.location.href
             return
-        
+
         textarea = $(document.activeElement)
         textAreas[textarea.uuid()] = textarea
         textarea.editInExternalEditor(port)
@@ -85,9 +99,18 @@ chrome.extension.onRequest.addListener (req, sender) ->
 
 $(window).unload ->
 
-    port.postMessage
-        action: "delete_all"
-        uuid: [ta.uudi() for key, ta of ta.uuid()]
+
+
+    console.log textAreas
+
+
+    uuids =  ta.uuid() for key, ta of textAreas
+    
+
+    if uuids.length > 0
+        port.postMessage
+            action: "delete"
+            uuids: uuids
 
 
 

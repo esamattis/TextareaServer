@@ -8,7 +8,7 @@
     };
     $.fn.edited = function(callback) {
       return this.each(function() {
-        var $e, active, e;
+        var $e, active, e, last, myloop;
         active = false;
         e = this;
         $e = $(e);
@@ -18,11 +18,17 @@
         $e.focusout(function() {
           return active = false;
         });
-        return $(window).keyup(function() {
-          if (active) {
-            return callback(e);
+        last = $e.val();
+        return (myloop = function() {
+          var current;
+          current = $e.val();
+          if (active && current !== last) {
+            callback($e);
+            console.log("calling " + $e);
           }
-        });
+          last = current;
+          return setTimeout(myloop, 1000);
+        })();
       });
     };
     $.fn.uuid = function() {
@@ -58,6 +64,7 @@
         });
       };
       that.edited(function() {
+        console.log("edited " + this);
         return sendToEditor();
       });
       return sendToEditor(true);
@@ -86,21 +93,17 @@
     }
   });
   $(window).unload(function() {
-    var key, ta;
-    return port.postMessage({
-      action: "delete_all",
-      uuid: [
-        (function() {
-          var _ref, _results;
-          _ref = ta.uuid();
-          _results = [];
-          for (key in _ref) {
-            ta = _ref[key];
-            _results.push(ta.uudi());
-          }
-          return _results;
-        })()
-      ]
-    });
+    var key, ta, uuids;
+    console.log(textAreas);
+    for (key in textAreas) {
+      ta = textAreas[key];
+      uuids = ta.uuid();
+    }
+    if (uuids.length > 0) {
+      return port.postMessage({
+        action: "delete",
+        uuids: uuids
+      });
+    }
   });
 }).call(this);

@@ -48,9 +48,8 @@ actions =
 
     delete: (client, msg) ->
         # also remove from clients
-        console.log "we should delete " + msg.uuid
-
-    delete_all: (client, msg) ->
+        console.log "we should delete: "
+        console.log msg
 
     open: (client, msg) ->
 

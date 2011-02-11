@@ -39,9 +39,9 @@
   });
   actions = {
     "delete": function(client, msg) {
-      return console.log("we should delete " + msg.uuid);
+      console.log("we should delete: ");
+      return console.log(msg);
     },
-    delete_all: function(client, msg) {},
     open: function(client, msg) {
       var file;
       clients[msg.uuid] = client;

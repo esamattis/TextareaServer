@@ -1,5 +1,5 @@
 (function() {
-  var SETTINGS, createSocket, loadSocketIO, portListeners, ports, reConnect, selectorPort, showTempNotification, socket;
+  var SETTINGS, actions, createSocket, loadSocketIO, ports, reConnect, selectorPort, showTempNotification, socket;
   SETTINGS = {
     hostname: "localhost",
     port: 8000,
@@ -22,7 +22,7 @@
   };
   showTempNotification = function(msg) {
     var notification;
-    notification = webkitNotifications.createNotification("icon.png", 'Hello!', msg);
+    notification = webkitNotifications.createNotification("icon.png", 'TextAreaConnect', msg);
     notification.show();
     return setTimeout(function() {
       return notification.cancel();
@@ -64,7 +64,7 @@
   selectorPort = null;
   chrome.contextMenus.create({
     title: "Edit in external editor",
-    contexts: ["all"],
+    contexts: ["all", "editable", "page"],
     onclick: function(onClickData, tab) {
       return chrome.tabs.sendRequest(tab.id, {
         action: "edittextarea",
@@ -73,17 +73,30 @@
     }
   });
   chrome.extension.onConnect.addListener(function(port) {
-    var _name;
-    return typeof portListeners[_name = port.name] == "function" ? portListeners[_name](port) : void 0;
+    if (port.name !== "textareapipe") {
+      return;
+    }
+    return port.onMessage.addListener(function(msg) {
+      return actions[msg.action](port, msg);
+    });
   });
-  portListeners = {
-    textareapipe: function(port) {
-      return port.onMessage.addListener(function(msg) {
-        ports[msg.uuid] = port;
-        msg.executable = SETTINGS.editor_cmd;
-        msg.type = msg.type || "txt";
-        return socket.send(JSON.stringify(msg));
-      });
+  actions = {
+    "delete": function(port, msg) {
+      var uuid, _i, _len, _ref;
+      console.log("got from page for deleting");
+      console.log(msg);
+      _ref = msg.uuids;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        uuid = _ref[_i];
+        delete ports[uuid];
+      }
+      return socket.send(JSON.stringify(msg));
+    },
+    open: function(port, msg) {
+      ports[msg.uuid] = port;
+      msg.executable = SETTINGS.editor_cmd;
+      msg.type = msg.type || "txt";
+      return socket.send(JSON.stringify(msg));
     }
   };
   loadSocketIO();

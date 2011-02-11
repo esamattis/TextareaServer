@@ -29,7 +29,7 @@ loadSocketIO = ->
 
 showTempNotification = (msg) ->
 
-    notification = webkitNotifications.createNotification "icon.png", 'Hello!', msg
+    notification = webkitNotifications.createNotification "icon.png", 'TextAreaConnect', msg
 
     notification.show()
     setTimeout ->
@@ -82,26 +82,41 @@ selectorPort = null
 
 chrome.contextMenus.create
     title: "Edit in external editor"
-    contexts: ["all"]
+    contexts: ["all", "editable", "page"]
     onclick: ( onClickData, tab ) ->
         chrome.tabs.sendRequest tab.id, action: "edittextarea", onClickData: onClickData
 
 
 chrome.extension.onConnect.addListener (port) ->
-    portListeners[port.name]?(port)
+    if port.name isnt "textareapipe"
+        return
+        
+    port.onMessage.addListener (msg)  ->
+        actions[msg.action](port, msg)
 
 
-portListeners =
 
-    textareapipe: (port) ->
 
-        port.onMessage.addListener (msg)  ->
-            ports[msg.uuid] = port
-            msg.executable = SETTINGS.editor_cmd
-            msg.type = msg.type or "txt"
+actions =
 
-            socket.send JSON.stringify msg
+    delete: (port, msg) ->
 
+        console.log "got from page for deleting"
+        console.log msg
+
+        for uuid in msg.uuids
+            delete ports[uuid]
+
+        socket.send JSON.stringify msg
+
+    open: (port, msg) ->
+
+        ports[msg.uuid] = port
+
+        msg.executable = SETTINGS.editor_cmd
+        msg.type = msg.type or "txt"
+        socket.send JSON.stringify msg
+        
 
 
 
