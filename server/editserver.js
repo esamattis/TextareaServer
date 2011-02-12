@@ -1,5 +1,5 @@
 (function() {
-  var DIR, Inotify, actions, cli, clients, exec, fs, http, inotify, io, path, server, socket;
+  var DIR, Inotify, actions, cli, clients, exec, file, fs, http, inotify, io, path, server, socket, stats, _i, _len, _ref;
   http = require("http");
   exec = require('child_process').exec;
   fs = require("fs");
@@ -7,7 +7,17 @@
   io = require("socket.io");
   cli = require("cli").enable('daemon');
   Inotify = require('inotify').Inotify;
-  DIR = path.join(process.env['HOME'], ".externaledits");
+  DIR = path.join(process.env['HOME'], ".textareaserver");
+  try {
+    stats = fs.realpathSync(DIR);
+  } catch (error) {
+    fs.mkdirSync(DIR, 0777);
+  }
+  _ref = fs.readdirSync(DIR);
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    file = _ref[_i];
+    fs.unlink(path.join(DIR, file));
+  }
   cli.parse({
     port: ['p', "Port to listen", "number", 8000],
     host: ['l', "Host to listen", "string", "127.0.0.1"]
@@ -25,29 +35,35 @@
     path: DIR,
     watch_for: Inotify.IN_CLOSE_WRITE,
     callback: function(event) {
-      console.log(event);
       return fs.readFile(path.join(DIR, event.name), function(err, data) {
         var client, msg;
-        msg = {
-          textarea: data.toString(),
-          uuid: event.name
-        };
         client = clients[event.name];
-        return client.send(JSON.stringify(msg));
+        if (client) {
+          msg = {
+            textarea: data.toString(),
+            uuid: event.name
+          };
+          return client.send(JSON.stringify(msg));
+        }
       });
     }
   });
   actions = {
     "delete": function(client, msg) {
-      console.log("we should delete: ");
-      return console.log(msg);
+      var uuid, _i, _len, _ref, _results;
+      _ref = msg.uuids;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        uuid = _ref[_i];
+        delete clients[uuid];
+        console.log(path.join(DIR, uuid));
+        _results.push(fs.unlink(path.join(DIR, uuid)));
+      }
+      return _results;
     },
     open: function(client, msg) {
-      var file;
       clients[msg.uuid] = client;
       file = path.join(DIR, msg.uuid);
-      console.log("getting form browser:");
-      console.log(msg);
       return fs.writeFile(file, msg.textarea, function() {
         var editor;
         if (msg.spawn) {

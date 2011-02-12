@@ -12,10 +12,10 @@
         active = false;
         e = this;
         $e = $(e);
-        $e.focusin(function() {
+        $(document).focusin(function() {
           return active = true;
         });
-        $e.focusout(function() {
+        $(document).focusout(function() {
           return active = false;
         });
         last = $e.val();
@@ -24,7 +24,6 @@
           current = $e.val();
           if (active && current !== last) {
             callback($e);
-            console.log("calling " + $e);
           }
           last = current;
           return setTimeout(myloop, 1000);
@@ -64,7 +63,6 @@
         });
       };
       that.edited(function() {
-        console.log("edited " + this);
         return sendToEditor();
       });
       return sendToEditor(true);
@@ -82,7 +80,6 @@
   chrome.extension.onRequest.addListener(function(req, sender) {
     var realUrl, textarea;
     if (req.action === "edittextarea") {
-      console.log("frame " + req.onClickData.frameUrl + " page " + req.onClickData.pageUrl + " " + window.location.href + " ");
       realUrl = req.onClickData.frameUrl || req.onClickData.pageUrl;
       if (realUrl !== window.location.href) {
         return;
@@ -94,11 +91,15 @@
   });
   $(window).unload(function() {
     var key, ta, uuids;
-    console.log(textAreas);
-    for (key in textAreas) {
-      ta = textAreas[key];
-      uuids = ta.uuid();
-    }
+    uuids = (function() {
+      var _results;
+      _results = [];
+      for (key in textAreas) {
+        ta = textAreas[key];
+        _results.push(ta.uuid());
+      }
+      return _results;
+    })();
     if (uuids.length > 0) {
       return port.postMessage({
         action: "delete",

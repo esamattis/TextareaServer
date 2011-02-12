@@ -14,9 +14,9 @@ do ->
             e = this
             $e = $(e)
 
-            $e.focusin ->
+            $(document).focusin ->
                 active = true
-            $e.focusout ->
+            $(document).focusout ->
                 active = false
 
             last = $e.val()
@@ -27,7 +27,7 @@ do ->
 
                 if active and current isnt last
                     callback $e
-                    console.log "calling " + $e
+
 
                 last = current
 
@@ -65,7 +65,6 @@ do ->
                 action: "open"
 
         that.edited ->
-            console.log "edited " + this
             sendToEditor()
 
         sendToEditor(true)
@@ -84,9 +83,8 @@ port.onMessage.addListener (obj) ->
 
 # Listen contextmenu clicks
 chrome.extension.onRequest.addListener (req, sender) ->
-    if req.action is "edittextarea"
 
-        console.log "frame #{ req.onClickData.frameUrl } page #{ req.onClickData.pageUrl} #{ window.location.href  } "
+    if req.action is "edittextarea"
 
         realUrl = req.onClickData.frameUrl || req.onClickData.pageUrl
         if realUrl isnt window.location.href
@@ -100,11 +98,7 @@ chrome.extension.onRequest.addListener (req, sender) ->
 $(window).unload ->
 
 
-
-    console.log textAreas
-
-
-    uuids =  ta.uuid() for key, ta of textAreas
+    uuids =  (ta.uuid() for key, ta of textAreas)
     
 
     if uuids.length > 0

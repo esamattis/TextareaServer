@@ -10,7 +10,19 @@ io = require "socket.io"
 cli = require( "cli").enable 'daemon'
 Inotify = require('inotify').Inotify
 
-DIR = path.join process.env['HOME'], ".externaledits"
+DIR = path.join process.env['HOME'], ".textareaserver"
+
+
+try
+    stats = fs.realpathSync DIR
+catch error
+    fs.mkdirSync DIR,0777 
+
+for file in fs.readdirSync DIR
+    fs.unlink path.join DIR, file
+
+
+
 
 cli.parse
     port: ['p', "Port to listen", "number", 8000 ]
@@ -33,32 +45,31 @@ inotify.addWatch
     path: DIR
     watch_for: Inotify.IN_CLOSE_WRITE
     callback: (event) ->
-        console.log event
         fs.readFile (path.join DIR, event.name), (err, data) ->
 
-            msg =
-                textarea: data.toString()
-                uuid: event.name
-
             client = clients[event.name]
-            client.send JSON.stringify msg
+
+            if client
+                msg =
+                    textarea: data.toString()
+                    uuid: event.name
+                client.send JSON.stringify msg
 
 
 actions =
 
     delete: (client, msg) ->
-        # also remove from clients
-        console.log "we should delete: "
-        console.log msg
+
+        for uuid in msg.uuids
+            delete clients[uuid]
+            console.log path.join DIR, uuid
+            fs.unlink path.join DIR, uuid
 
     open: (client, msg) ->
 
         clients[msg.uuid] = client
 
         file = path.join DIR, msg.uuid
-
-        console.log "getting form browser:"
-        console.log msg
 
         fs.writeFile file, msg.textarea, ->
             if msg.spawn
