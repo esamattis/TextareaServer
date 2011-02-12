@@ -7,7 +7,7 @@ fs = require "fs"
 path = require "path"
 
 io = require "socket.io"
-cli = require( "cli").enable 'daemon'
+cli = require( "cli")
 Inotify = require('inotify').Inotify
 
 DIR = path.join process.env['HOME'], ".textareaserver"
@@ -27,6 +27,9 @@ for file in fs.readdirSync DIR
 cli.parse
     port: ['p', "Port to listen", "number", 8000 ]
     host: ['l', "Host to listen", "string", "127.0.0.1"]
+    "editor-cmd": ['c', 'Editor to use. {file} will substituted with the file path. Use quotes.',
+                        "string", "gedit {file}"]
+
 
 
 inotify = new Inotify()
@@ -40,6 +43,11 @@ socket = io.listen server
 
 clients = {}
 
+
+
+cleanUuid = (uuid) ->
+    # Make sure that there are no funny characters
+    uuid.replace(/[^a-zA-Z0-9_\-]/g, "")
 
 inotify.addWatch
     path: DIR
@@ -65,16 +73,6 @@ actions =
             console.log path.join DIR, uuid
             fs.unlink path.join DIR, uuid
 
-    open: (client, msg) ->
-
-        clients[msg.uuid] = client
-
-        file = path.join DIR, msg.uuid
-
-        fs.writeFile file, msg.textarea, ->
-            if msg.spawn
-                editor = exec msg.executable.replace(/\{file\}/, file)
-
 
 socket.on 'connection', (client) ->
     client.on 'message', (msg) ->
@@ -92,5 +90,28 @@ socket.on 'connection', (client) ->
 
 
 cli.main (args, options) ->
+    actions.open =  (client, msg) ->
+
+        clients[msg.uuid] = client
+
+        file = path.join DIR, cleanUuid msg.uuid
+
+        fs.writeFile file, msg.textarea, ->
+            if msg.spawn
+
+                fileRegx = /\{ *file *\}/
+                editorCmd = options["editor-cmd"]
+
+                if !! editorCmd.match fileRegx
+                    cmd = editorCmd.replace(fileRegx, file)
+                else
+                    cmd = "#{editorCmd.trim()} #{file}"
+
+                console.log cmd
+
+                editor = exec cmd
+
+
+
     server.listen options.port, options.host
 

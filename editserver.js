@@ -1,11 +1,11 @@
 (function() {
-  var DIR, Inotify, actions, cli, clients, exec, file, fs, http, inotify, io, path, server, socket, stats, _i, _len, _ref;
+  var DIR, Inotify, actions, cleanUuid, cli, clients, exec, file, fs, http, inotify, io, path, server, socket, stats, _i, _len, _ref;
   http = require("http");
   exec = require('child_process').exec;
   fs = require("fs");
   path = require("path");
   io = require("socket.io");
-  cli = require("cli").enable('daemon');
+  cli = require("cli");
   Inotify = require('inotify').Inotify;
   DIR = path.join(process.env['HOME'], ".textareaserver");
   try {
@@ -20,7 +20,8 @@
   }
   cli.parse({
     port: ['p', "Port to listen", "number", 8000],
-    host: ['l', "Host to listen", "string", "127.0.0.1"]
+    host: ['l', "Host to listen", "string", "127.0.0.1"],
+    "editor-cmd": ['c', 'Editor to use. {file} will substituted with the file path. Use quotes.', "string", "gedit {file}"]
   });
   inotify = new Inotify();
   server = http.createServer(function(req, res) {
@@ -31,6 +32,9 @@
   });
   socket = io.listen(server);
   clients = {};
+  cleanUuid = function(uuid) {
+    return uuid.replace(/[^a-zA-Z0-9_\-]/g, "");
+  };
   inotify.addWatch({
     path: DIR,
     watch_for: Inotify.IN_CLOSE_WRITE,
@@ -60,16 +64,6 @@
         _results.push(fs.unlink(path.join(DIR, uuid)));
       }
       return _results;
-    },
-    open: function(client, msg) {
-      clients[msg.uuid] = client;
-      file = path.join(DIR, msg.uuid);
-      return fs.writeFile(file, msg.textarea, function() {
-        var editor;
-        if (msg.spawn) {
-          return editor = exec(msg.executable.replace(/\{file\}/, file));
-        }
-      });
     }
   };
   socket.on('connection', function(client) {
@@ -88,6 +82,24 @@
     });
   });
   cli.main(function(args, options) {
+    actions.open = function(client, msg) {
+      clients[msg.uuid] = client;
+      file = path.join(DIR, cleanUuid(msg.uuid));
+      return fs.writeFile(file, msg.textarea, function() {
+        var cmd, editor, editorCmd, fileRegx;
+        if (msg.spawn) {
+          fileRegx = /\{ *file *\}/;
+          editorCmd = options["editor-cmd"];
+          if (!!editorCmd.match(fileRegx)) {
+            cmd = editorCmd.replace(fileRegx, file);
+          } else {
+            cmd = "" + (editorCmd.trim()) + " " + file;
+          }
+          console.log(cmd);
+          return editor = exec(cmd);
+        }
+      });
+    };
     return server.listen(options.port, options.host);
   });
 }).call(this);
