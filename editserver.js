@@ -19,7 +19,7 @@
     fs.unlink(path.join(DIR, file));
   }
   cli.parse({
-    port: ['p', "Port to listen", "number", 8000],
+    port: ['p', "Port to listen", "number", 32942],
     host: ['l', "Host to listen", "string", "127.0.0.1"],
     "editor-cmd": ['c', 'Editor to use. {file} will substituted with the file path. Use quotes.', "string", "gedit {file}"]
   });
@@ -100,6 +100,7 @@
         }
       });
     };
-    return server.listen(options.port, options.host);
+    server.listen(options.port, options.host);
+    return console.log("TextareaServer is running at " + options.host + ":" + options.port);
   });
 }).call(this);

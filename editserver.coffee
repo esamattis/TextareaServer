@@ -25,7 +25,7 @@ for file in fs.readdirSync DIR
 
 
 cli.parse
-    port: ['p', "Port to listen", "number", 8000 ]
+    port: ['p', "Port to listen", "number", 32942 ]
     host: ['l', "Host to listen", "string", "127.0.0.1"]
     "editor-cmd": ['c', 'Editor to use. {file} will substituted with the file path. Use quotes.',
                         "string", "gedit {file}"]
@@ -114,4 +114,5 @@ cli.main (args, options) ->
 
 
     server.listen options.port, options.host
+    console.log "TextareaServer is running at #{options.host}:#{options.port}"
 
