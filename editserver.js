@@ -30,7 +30,9 @@
     });
     return res.end('<h1>Hello world</h1>');
   });
-  socket = io.listen(server);
+  socket = io.listen(server, {
+    transports: ['websocket']
+  });
   clients = {};
   cleanUuid = function(uuid) {
     return uuid.replace(/[^a-zA-Z0-9_\-]/g, "");
