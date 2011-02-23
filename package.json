@@ -1,4 +1,3 @@
-
 {
     "name" : "textareaserver"
     , "version": "0.1.0"
@@ -7,11 +6,9 @@
         "textareaserver": "editserver.js"
     }
     , "dependencies": {
-        "socket.io": ""    
+        "socket.io": ""
         , "inotify": ""
         , "cli": ""
-// http://slashed.posterous.com/writing-daemons-in-javascript-with-nodejs-0
-    }   
-
+    }
 }
 
