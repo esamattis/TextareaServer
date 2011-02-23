@@ -17,7 +17,7 @@ wiki](https://github.com/ry/node/wiki/Installation)
 
 Then just install TextareaServer using npm:
 
-    npm install http://github.com/epeli/TextareaServer/tarball/v0.1.3
+    npm install textareaserver
 
 And start it by entering commmand:
 
