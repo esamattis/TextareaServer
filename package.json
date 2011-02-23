@@ -1,6 +1,6 @@
 {
     "name" : "textareaserver"
-    , "version": "0.1.0"
+    , "version": "0.1.2"
     , "author": "Esa-Matti Suuronen"
     , "bin": {
         "textareaserver": "editserver.js"

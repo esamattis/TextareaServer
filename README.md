@@ -9,7 +9,7 @@ Node.js & npm install instructions can be found [here](https://github.com/ry/nod
 
 Then just install TextareaServer using npm:
 
-    npm install https://github.com/epeli/TextareaServer/tarball/v0.1.1
+    npm install https://github.com/epeli/TextareaServer/tarball/v0.1.2
 
 And start it by entering commmand:
 
