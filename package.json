@@ -1,6 +1,6 @@
 {
     "name" : "textareaserver"
-    , "version": "0.1.2"
+    , "version": "0.1.3"
     , "author": "Esa-Matti Suuronen"
     , "bin": {
         "textareaserver": "./bin/run"
