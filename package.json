@@ -3,8 +3,12 @@
     , "version": "0.1.2"
     , "author": "Esa-Matti Suuronen"
     , "bin": {
-        "textareaserver": "editserver.js"
+        "textareaserver": "./bin/run"
     }
+    , "directories": {
+        "lib" : "./lib"
+    }
+    , "main": "./lib/textareaserver"
     , "dependencies": {
         "socket.io": ""
         , "inotify": ""

@@ -1,10 +1,9 @@
 
-
-
 http = require "http"
 exec = require('child_process').exec
 fs = require "fs"
 path = require "path"
+
 
 io = require "socket.io"
 cli = require( "cli")
@@ -89,30 +88,32 @@ socket.on 'connection', (client) ->
         console.log "browser disconnected"
 
 
-cli.main (args, options) ->
-    actions.open =  (client, msg) ->
+exports.run = ->
 
-        clients[msg.uuid] = client
+    cli.main (args, options) ->
+        actions.open =  (client, msg) ->
 
-        file = path.join DIR, cleanUuid msg.uuid
+            clients[msg.uuid] = client
 
-        fs.writeFile file, msg.textarea, ->
-            if msg.spawn
+            file = path.join DIR, cleanUuid msg.uuid
 
-                fileRegx = /\{ *file *\}/
-                editorCmd = options["editor-cmd"]
+            fs.writeFile file, msg.textarea, ->
+                if msg.spawn
 
-                if !! editorCmd.match fileRegx
-                    cmd = editorCmd.replace(fileRegx, file)
-                else
-                    cmd = "#{editorCmd.trim()} #{file}"
+                    fileRegx = /\{ *file *\}/
+                    editorCmd = options["editor-cmd"]
 
-                console.log cmd
+                    if !! editorCmd.match fileRegx
+                        cmd = editorCmd.replace(fileRegx, file)
+                    else
+                        cmd = "#{editorCmd.trim()} #{file}"
 
-                editor = exec cmd
+                    console.log cmd
+
+                    editor = exec cmd
 
 
 
-    server.listen options.port, options.host
-    console.log "TextareaServer is running at #{options.host}:#{options.port}"
+        server.listen options.port, options.host
+        console.log "TextareaServer is running at #{options.host}:#{options.port}"
 
