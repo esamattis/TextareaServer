@@ -7,7 +7,6 @@ path = require "path"
 
 io = require "socket.io"
 cli = require( "cli")
-Inotify = require('inotify').Inotify
 
 DIR = path.join process.env['HOME'], ".textareaserver"
 
@@ -31,7 +30,6 @@ cli.parse
 
 
 
-inotify = new Inotify()
 server = http.createServer (req, res) ->
     res.writeHead(200, {'Content-Type': 'text/html'})
     res.end('<h1>Hello world</h1>')
@@ -47,20 +45,6 @@ clients = {}
 cleanUuid = (uuid) ->
     # Make sure that there are no funny characters
     uuid.replace(/[^a-zA-Z0-9_\-]/g, "")
-
-inotify.addWatch
-    path: DIR
-    watch_for: Inotify.IN_CLOSE_WRITE
-    callback: (event) ->
-        fs.readFile (path.join DIR, event.name), (err, data) ->
-
-            client = clients[event.name]
-
-            if client
-                msg =
-                    textarea: data.toString()
-                    uuid: event.name
-                client.send JSON.stringify msg
 
 
 actions =
@@ -110,7 +94,12 @@ exports.run = ->
 
                     console.log cmd
 
-                    editor = exec cmd
+                    editor = exec cmd, (err, stdout, stderr) ->
+                        fs.readFile (path.join DIR, cleanUuid (msg.uuid)), (err, data) ->
+                            resmsg = 
+                                textarea: data.toString()
+                                uuid: cleanUuid (msg.uuid)
+                            client.send JSON.stringify resmsg
 
 
 
