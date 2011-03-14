@@ -118,7 +118,7 @@ exports.run = ->
             server.listen options.port, options.host
             console.log "TextareaServer is running at #{options.host}:#{options.port}"
         catch error
-            console.log "Could now start the server: #{ error.message }"
+            console.log "Could not start the server: #{ error.message }"
             process.exit 1
 
 
