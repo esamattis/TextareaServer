@@ -1,5 +1,10 @@
-
 TextareaServer is a backend of [TextareaConnect][].
+
+# NOTE
+
+Due to updates in both Chrome and Node.js TextareaConnect/Server is currently broken. 
+Also I'm currently bit busy with my other projects so this will have to wait for now. 
+Pull requests are very welcome thou!
 
 # Installing
 
