@@ -11,7 +11,6 @@
     , "main": "./lib/textareaserver"
     , "dependencies": {
         "socket.io": ""
-        , "inotify": ""
         , "cli": ""
     }
 }
