@@ -2,6 +2,8 @@ TextareaServer is a backend of [TextareaConnect][].
 
 # NOTE
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/epeli/TextareaServer.svg)](https://greenkeeper.io/)
+
 Due to updates in both Chrome and Node.js TextareaConnect/Server is currently broken. 
 Also I'm currently bit busy with my other projects so this will have to wait for now. 
 Pull requests are very welcome thou!
